@@ -1,0 +1,12 @@
+obj-m:=tlb.o
+ifndef kv
+kv = $(shell uname -r)
+KERNELSOURCEDIR := /lib/modules/$(kv)/build
+else
+KERNELSOURCEDIR := /usr/src/kernels/3.10.0-693_$(kv).tl2
+endif
+
+all:
+	make -C $(KERNELSOURCEDIR) M=$(shell pwd) modules
+clean:
+	make -C $(KERNELSOURCEDIR) M=$(shell pwd) clean

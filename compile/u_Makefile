@@ -1,0 +1,46 @@
+here is the dep:
+run->libmysta.a;
+run->libby.so->libbase.so:
+cmdline:
+gcc -c -fPIC -o base.o libbase.c -g
+gcc -shared -o libbase.so base.o -g
+gcc -shared -fPIC -g libdy.c -L . -lbase -o libdy.so
+//libby.so->libbase.so
+gcc -c mysta.o mysta.c -fPIC
+ar -crv libmysta.a mysta.o
+//libmysta.a
+gcc run.c -o run libmysta.a -ldy -L . -Wl,-rpath=.
+
+
+Makefile:
+AR      = ar
+CC      = gcc
+CFLAGS += -O0 -fPIC -g
+AFLAGS += -crv
+DFLAGS += -shared -lbase -L . -Wl,-rpath=.
+RFLAGS += -lbase -ldy -L . -Wl,-rpath=.
+
+all: libstaextlib.a libstaout.a libbase.so libdy.so run
+
+STA_LIBC = $(shell ls libsta*.c|grep -v ext)
+STA_LIBC += libstaextlib.c
+STA_LIB=$(STA_LIBC:%.c=%.a)
+
+libsta%.a : libsta%.o
+        $(AR) $(AFLAGS) $@ $^
+
+libbase.so : libbase.o
+        $(CC) $(CFLAGS) -shared -o $@ $^
+
+libdy.so : libdy.o
+        $(CC) $(CFLAGS) $(DFLAGS) -o $@ $^
+
+lib%.o : lib%.c
+        $(CC) $< -c $(CFLAGS)
+
+run : run.c $(STA_LIB)
+        $(CC) $(RFLAGS) -o $@ $^
+
+GEN=$(shell ls |grep -v .c|grep -v Makefile)
+clean:
+        rm -rf $(GEN)
